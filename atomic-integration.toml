@@ -1,0 +1,14 @@
+schema = 1
+agent = "atomic-skills"
+version = "1.0.0"
+
+[requires]
+atomic = ">=0.11.0"
+
+# atomic-skills is a content-only package — the canonical source of AGENTS.md
+# and the atomic skills. It is consumed by other agent plugins via
+# [skills-source] in their own manifests, not installed directly.
+#
+# The CLI clones this package into ~/.atomic/integrations/atomic-skills/repo
+# (shared cache) and each plugin's manifest references skills/AGENTS.md from
+# that cache.
