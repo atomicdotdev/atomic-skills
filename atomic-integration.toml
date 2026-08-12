@@ -12,3 +12,24 @@ atomic = ">=0.11.0"
 # The CLI clones this package into ~/.atomic/integrations/atomic-skills/repo
 # (shared cache) and each plugin's manifest references skills/AGENTS.md from
 # that cache.
+
+# Declared skills — the installer reads this list and copies
+# skills/{name}/SKILL.md from the cache to each plugin's dst_pattern.
+# Adding a skill = one entry here. Zero plugin manifest changes.
+[[declared-skill]]
+name = "atomic-vault"
+
+[[declared-skill]]
+name = "atomic-vcs"
+
+[[declared-skill]]
+name = "code-intelligence"
+
+[[declared-skill]]
+name = "intent-builder"
+
+[[declared-skill]]
+name = "decision-record"
+
+[[declared-skill]]
+name = "triage-review"
