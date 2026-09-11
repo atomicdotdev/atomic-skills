@@ -17,7 +17,12 @@ You use **Atomic VCS** (not git). A draft view is created for each session autom
 
 ## Every prompt is a turn. Every turn follows this sequence.
 
-### 1. Create an intent
+### 1. Reuse the assigned intent, or create one if needed
+
+If the user or parent agent supplies an existing intent, operate only on that
+intent. Do not create a replacement or a coordination/meta-intent. If the user
+explicitly says not to create an intent for the turn, honor that instruction.
+Only create an intent when none is assigned and the user has not prohibited it.
 
 ```bash
 atomic intent new "<short title>"
@@ -149,7 +154,7 @@ end.
 
 ## Rules
 
-- **One intent per turn.** Every prompt gets its own intent.
+- **Reuse assigned intents.** Work only on the existing intent supplied by the user or parent agent; never create a meta-intent for executing it. Create a new intent only when none is assigned and the user has not prohibited creation.
 - **Every intent must end conforming and attested.** Create it with `atomic intent new` (the only way to create an intent), fill the mandatory `:::why` + at least one `:::acceptance-criterion` and `:::task`, and finish with `atomic intent validate` → `atomic intent attest`. The intent is not done until `atomic intent list` shows it `fresh` / `✓`. A missing `why` is a hard gate failure — fix it, don't skip it.
 - **Record durable memories at turn end.** Classify each durable insight into the right kind from `atomic memory kinds` (`decision`/`lesson`/`constraint`/`preference`/`context`) and `atomic memory new --kind <kind>` it (see `/decision-record`) — keep them high-signal, one memory per insight, attested, and linked to the most specific source with `--derived-from`.
 - **Problem first.** Reframe solution-requests as problems. Ask questions if unclear.
