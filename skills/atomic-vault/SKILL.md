@@ -44,8 +44,8 @@ validate or attest — and has been removed.)
 
 `backlog` → `planned` → `in_progress` → `needs-review` → `done`
 
-`needs-review` is set by the author as the **last action of the implementation
-turn**, once the intent conforms and is signed — it is the handoff to review.
+Set `needs-review` as the **last action of the implementation turn**, once
+the intent conforms and is signed — it is the handoff to review.
 
 ### CRITICAL: check before creating
 
