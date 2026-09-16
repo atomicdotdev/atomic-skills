@@ -42,7 +42,10 @@ validate or attest — and has been removed.)
 
 ### Intent statuses
 
-`backlog` → `planned` → `in-progress` → `review` → `done`
+`backlog` → `planned` → `in_progress` → `needs-review` → `done`
+
+`needs-review` is set by the author as the **last action of the implementation
+turn**, once the intent conforms and is signed — it is the handoff to review.
 
 ### CRITICAL: check before creating
 
@@ -160,10 +163,12 @@ atomic intent link <id> --goal auth-implementation
 
 ### 5. Do the work
 
-Write code and iterate. As each criterion's outcome holds, **verify** it (run
-the actual checks), then flip its `status=unmet` → `status=met` in the intent
-file with your **file-editing tool** (never bash, Python, or sed — that bypasses
-the vault), and `atomic vault sync`. Do not mark a criterion met speculatively.
+Set the intent `in_progress` when you begin (`atomic intent update <id>
+--status in_progress`), then write code and iterate. As each criterion's
+outcome holds, **verify** it (run the actual checks), then flip its
+`status=unmet` → `status=met` in the intent file with your **file-editing
+tool** (never bash, Python, or sed — that bypasses the vault), and
+`atomic vault sync`. Do not mark a criterion met speculatively.
 
 **Marking a criterion met takes three attributes, not one.** The gate rejects a
 checked box with nothing behind it, so set `verifiedBy` and `evidence` in the
@@ -189,23 +194,26 @@ You do **not** create or switch views, and you do **not** run `atomic add` or
 
 To review what the hooks recorded, use the `/atomic-vcs` skill.
 
-### 6. Validate, attest, and complete
+### 6. Validate, attest, and hand off to review
 
-An intent is not done until it **conforms and is signed**:
+An intent is not ready for review until it **conforms and is signed**:
 
 ```bash
 atomic vault sync                          # persist your edits first
-atomic intent update <id> --status done    # mark it done
-atomic vault sync
 atomic intent validate <id>                # MUST conform
-atomic intent attest <id>                  # sign the completed intent
+atomic intent attest <id>                   # sign the completed intent
+atomic intent update <id> --status needs-review   # implementation complete — hand off to review
 ```
 
-`validate` is a hard gate: before `attest` the only violations it may report are
-the fillable `attributedTo` + `proof` (which `attest` fills). If it flags `why`
-or a criterion, your directives are incomplete — fix them, `atomic vault sync`,
+`validate` is a hard gate: before `attest` the only violations it may report
+are the fillable `attributedTo` + `proof` (which `attest` fills) — but it
+exits non-zero on those too, so run `attest` as its own step rather than
+`&&`-chaining past a failed-looking `validate`. If `validate` flags `why` or a
+criterion, your directives are incomplete — fix them, `atomic vault sync`,
 and validate again. Confirm with `atomic intent list`: the intent must show
-`fresh` / `✓`.
+`fresh` / `✓`. Set `needs-review` as the **last action of the turn** — the
+hooks record the status flip, and `atomic intent list` becomes the review
+queue.
 
 ### 7. Stop the goal when done
 
@@ -231,8 +239,9 @@ atomic vault goal resume "auth-implementation"
   new` (the legacy `atomic vault intent create` has been removed).
 - Fill the directives before coding; `atomic vault sync` after every file edit
   and before every `show`/`validate`/`attest`/`update`.
-- Finish with `validate` → `attest`; the intent isn't done until `atomic intent
-  list` shows it `fresh` / `✓`.
+- Finish with `validate` → `attest` → `--status needs-review` (the turn's last
+  action); the intent isn't ready for review until `atomic intent list` shows
+  it `fresh` / `✓`.
 - You don't manage views or recording — hooks fork a draft view at session
   start, record at turn end, and restore your view at session end. Inspect the
   results with the `/atomic-vcs` skill.

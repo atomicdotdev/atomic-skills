@@ -72,11 +72,13 @@ from the database, so sync **before** them or they see the stale scaffold.
 
 ### 3. Execute the tasks
 
-Work the tasks in order. After each one: **verify** it (run the checks), then
+When you begin executing, flip the intent to `in_progress` — `atomic intent
+update <ID> --status in_progress` (exact CLI token: underscore, not hyphen) —
+then work the tasks in order. After each one: **verify** it (run the checks), then
 mark it in the intent file with your **file-editing tool** — flip the
 acceptance-criterion `status=unmet` → `status=met` when its outcome holds — and
-`atomic vault sync`. Never edit the file with bash/Python/sed; that bypasses the
-vault.
+`atomic vault sync`. Never edit the file with bash/Python/sed; that bypasses
+the vault.
 
 **A met criterion needs three attributes, not one.** Add `verifiedBy` and
 `evidence` in the same edit:
@@ -88,24 +90,27 @@ vault.
 Setting only `status=met` fails with `a met acceptance criterion must carry
 verifiedBy and evidence`.
 
-### 4. Validate, attest, and complete
+### 4. Validate, attest, and hand off to review
 
-An intent is not done until it **conforms and is signed** — this is the gate
-that forces a clean intent:
+An intent is not ready for review until it **conforms and is signed** — this is
+the gate that forces a clean intent:
 
 ```bash
 atomic vault sync                          # persist your edits first
-atomic intent update <ID> --status done    # mark it done
-atomic vault sync
 atomic intent validate <ID>                # MUST conform
 atomic intent attest <ID>                  # sign the completed intent
+atomic intent update <ID> --status needs-review   # implementation complete — hand off to review
 ```
 
 `validate` is a hard gate. Before `attest` the only violations it may report
-are the fillable `attributedTo` + `proof` (which `attest` fills). **If it flags
+are the fillable `attributedTo` + `proof` (which `attest` fills) — it exits
+non-zero on those too, so run these as separate steps, not one `&&` chain.
+**If it flags
 `why` or a criterion, your directives are incomplete — fix them, `atomic vault
 sync`, and validate again before attesting.** Confirm with `atomic intent list`:
-the intent must show `fresh` / `✓`.
+the intent must show `fresh` / `✓`. Set `needs-review` as the **last action of
+the turn** — the hooks record the status flip with the turn's provenance, and
+`atomic intent list` becomes the review queue.
 
 **Do NOT run `atomic add` or `atomic record`.** Atomic records your
 changes automatically with full AI provenance when the turn ends. (`atomic vault
@@ -155,7 +160,7 @@ end.
 ## Rules
 
 - **Reuse assigned intents.** Work only on the existing intent supplied by the user or parent agent; never create a meta-intent for executing it. Create a new intent only when none is assigned and the user has not prohibited creation.
-- **Every intent must end conforming and attested.** Create it with `atomic intent new` (the only way to create an intent), fill the mandatory `:::why` + at least one `:::acceptance-criterion` and `:::task`, and finish with `atomic intent validate` → `atomic intent attest`. The intent is not done until `atomic intent list` shows it `fresh` / `✓`. A missing `why` is a hard gate failure — fix it, don't skip it.
+- **Every intent must end conforming and attested.** Create it with `atomic intent new` (the only way to create an intent), fill the mandatory `:::why` + at least one `:::acceptance-criterion` and `:::task`, and finish with `atomic intent validate` → `atomic intent attest` → `atomic intent update <ID> --status needs-review`. The intent is not ready for review until `atomic intent list` shows it `fresh` / `✓`. A missing `why` is a hard gate failure — fix it, don't skip it.
 - **Record durable memories at turn end.** Classify each durable insight into the right kind from `atomic memory kinds` (`decision`/`lesson`/`constraint`/`preference`/`context`) and `atomic memory new --kind <kind>` it (see `/decision-record`) — keep them high-signal, one memory per insight, attested, and linked to the most specific source with `--derived-from`.
 - **Problem first.** Reframe solution-requests as problems. Ask questions if unclear.
 - **Explore with code intelligence, not grep.** When a turn builds or changes code, discover the files with `atomic vault query` (`code`/`search`/`entities`/`neighbors`) before writing `::file-ref` paths into the intent — never from grep/find or guessed paths. The recorded provenance shows which tools you used; grep-only exploration means the intent was planned blind.
