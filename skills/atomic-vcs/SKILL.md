@@ -119,18 +119,30 @@ depends on, who/what authored it, what it cost, and the reasoning that produced 
 
 ## `atomic diff` — precise edits
 
+`-c` **selects which change to show** — it is not a comparison target. The two modes
+answer different questions:
+
 ```bash
 atomic diff                    # working copy vs. recorded state, all modified tracked files
 atomic diff src/auth.rs        # one or more specific files
-atomic diff -c R4YQ            # compare against a specific change
+atomic diff -c R4YQ            # what did change R4YQ do? (state before vs. after it)
 atomic diff --stat             # summary: files + line counts
 atomic diff --name-only        # just the changed paths
 atomic diff --name-status      # paths with M/A/D indicators
+atomic diff --json             # versioned JSON: per-file hunks, typed lines, rollups
 atomic diff --untracked        # include untracked files
-atomic diff --view dev         # compare against another view
+atomic diff --view dev         # working-copy comparison against another view
 atomic diff --word-diff        # token-level highlighting (CRDT-powered)
 atomic diff --algorithm patience   # better for moved blocks (default: myers)
 ```
+
+A clean working copy is not a dead end: `atomic diff` names real, copy-pasteable
+`-c` commands for the most recent changes on the current view. Follow one.
+
+`--json` takes precedence over `--stat`/`--name-only`/`--name-status`, so a consumer
+always gets one parseable document. A `-c` diff carries the change header under
+`change` (hash, message, authors, date); a working-copy diff carries `view` instead.
+A diff with nothing to show still emits valid JSON with an empty `files` array.
 
 `--word-diff` is special to Atomic: it shows exactly which **tokens** changed within a
 line, not just that the line changed. Reach for it during code review when a line was
