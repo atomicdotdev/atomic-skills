@@ -99,6 +99,10 @@ the summaries as part of the report.
   manifest. It does not choose the checker.
 - The **reviewer agent** chooses or allowlists the checker, runs replay, attaches
   the report, and writes the review intent.
+- Hold each decision to that allowlist: every entry in `evidence_replays[].decisions[]`
+  carries `checker` (`{package, version}`, or `null` when the checker named none).
+  A decision whose `checker` is `null` or names a release outside the allowlist
+  backs nothing; re-run replay with the allowlisted checker.
 - A `supported` decision can back a **met** review criterion; cite the report hash
   and the retained artifacts in the verification record.
 - `contradicted`, `not_established`, or `stale` must leave the corresponding
