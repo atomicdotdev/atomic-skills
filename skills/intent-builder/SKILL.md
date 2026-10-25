@@ -154,7 +154,7 @@ TODOs are the independently executable tasks that build agents pick up. Each TOD
 Every TODO must have:
 - **ID** — `<intent-id>/<n>` (e.g., `ATOM-42/1`)
 - **Title** — short description of the task
-- **Files** — specific file paths that will be created or modified. Use `atomic vault query search` and `atomic vault query entities` to find real paths. Never guess.
+- **Files** — specific file paths that will be created or modified. Use `atomic query search` and `atomic query entities` to find real paths. Never guess.
 - **Criteria** — how to verify this specific TODO is done. Must be a subset of the intent's acceptance criteria, or a step toward them.
 - **Depends** — other TODO IDs from this intent that must complete first. Omit if independent.
 
@@ -181,7 +181,7 @@ Every TODO must have:
 
 **Independence.** A build agent reads ONE TODO. It does not read other TODOs. Each TODO must contain enough context to execute — the file paths, the expected behavior, and the success criteria. If a TODO requires understanding another TODO to make sense, it's not independent enough.
 
-**Specific files.** Always search the codebase (`atomic vault query search "X"`, then `atomic vault query entities <file>`) to find the real file paths. Never write `"the relevant file"` or `"update as needed"`. Name the exact paths.
+**Specific files.** Always search the codebase (`atomic query search "X"`, then `atomic query entities <file>`) to find the real file paths. Never write `"the relevant file"` or `"update as needed"`. Name the exact paths.
 
 **Scoped criteria.** Each TODO's criteria should be verifiable in isolation. "The full test suite passes" is not a TODO criterion — that's the intent's acceptance criterion. A TODO criterion is: "Running `atomic vault intent set ID --problem '...'` updates the frontmatter and exits 0."
 
