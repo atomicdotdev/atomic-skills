@@ -74,7 +74,13 @@ from the database, so sync **before** them or they see the stale scaffold.
 
 When you begin executing, flip the intent to `in_progress` — `atomic intent
 update <ID> --status in_progress` (exact CLI token: underscore, not hyphen) —
-then work the tasks in order. After each one: **verify** it (run the checks), then
+then work the tasks in order. Inside an agent session the integration supplies
+the session context, so that same command also **binds the intent to the
+current turn**: the turn's end-of-turn recording then carries the intent's UID
+in `plan_id`, and the intent graph (`atomic intent graph <ID>`) attributes the
+turn's recorded changes to this intent. The binding is **per-turn** — declare
+it again at the start of each turn that works on the intent. Run it as part of
+your first commands of the turn, before any recording starts. After each one: **verify** it (run the checks), then
 mark it in the intent file with your **file-editing tool** — flip the
 acceptance-criterion `status=unmet` → `status=met` when its outcome holds — and
 `atomic vault sync`. Never edit the file with bash/Python/sed; that bypasses

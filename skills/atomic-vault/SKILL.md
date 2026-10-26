@@ -32,9 +32,23 @@ atomic intent validate <id>                        # Gate it against the canonic
 atomic intent attest <id>                          # Sign the conforming intent
 atomic intent verify <id>                          # Verify a signed intent
 atomic intent update <id> --status <status>        # Set status / fields
+atomic intent update <id> --status in_progress     # Start work — binds the intent to the current agent turn
+atomic intent graph <id>                           # Show the intent's semantic change lineage
 atomic intent delete <id>                          # Delete an unstarted backlog intent
 atomic intent link <id> --goal <goal>              # Link the intent to a goal
 ```
+
+`--status in_progress` is the **work-start declaration**. In an agent session
+the integration supplies the session context, so it also binds the intent to
+the current turn — the turn's end-of-turn recording then carries the intent's
+UID in `plan_id`, and `atomic intent graph <id>` attributes the turn's
+recorded changes to this intent. The binding is **per-turn**: declare it again
+at the start of each turn that works on the intent, before recording starts.
+Outside an agent session the same command is a plain status change; to pin the
+binding explicitly, pass `--session-id <session-id>` (or set
+`ATOMIC_SESSION_ID`) with an optional `--turn <n>` safety check. The
+declaration never records, attests, or repairs anything — it only declares
+which intent governs this turn, and it does not carry into later turns.
 
 Always create with `atomic intent new`. (The old `atomic vault intent create`
 wrote a legacy template that did not lift — no `:::why`, so it could never
@@ -164,7 +178,10 @@ atomic intent link <id> --goal auth-implementation
 ### 5. Do the work
 
 Set the intent `in_progress` when you begin (`atomic intent update <id>
---status in_progress`), then write code and iterate. As each criterion's
+--status in_progress`) — in an agent session this is also the work-start
+declaration that binds the intent to the current turn, so the turn's recorded
+changes are attributed to it in the intent graph; then write code and iterate.
+As each criterion's
 outcome holds, **verify** it (run the actual checks), then flip its
 `status=unmet` → `status=met` in the intent file with your **file-editing
 tool** (never bash, Python, or sed — that bypasses the vault), and
@@ -237,6 +254,10 @@ atomic vault goal resume "auth-implementation"
 - One intent per unit of work; run `atomic intent list` first.
 - **`:::why` is mandatory** — no `why`, no attest. Create with `atomic intent
   new` (the legacy `atomic vault intent create` has been removed).
+- **Declare work start every turn.** `--status in_progress` binds the intent
+  to the current agent turn (per-turn, not sticky). Without it — e.g. running
+  the command in a plain terminal — the update is a status change only and
+  that turn's changes carry no governing intent.
 - Fill the directives before coding; `atomic vault sync` after every file edit
   and before every `show`/`validate`/`attest`/`update`.
 - Finish with `validate` → `attest` → `--status needs-review` (the turn's last
