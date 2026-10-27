@@ -200,6 +200,6 @@ atomic diff --stat          # confirm the size/shape of the change
 - Quote sequence references so the shell doesn't treat `#` as a comment: `atomic change '#42'`.
 - Add `-f json` (log/change) or `--name-status` (diff) when you need to parse output.
 - For *code structure and content* search (functions, definitions, text), use the
-  `code-intelligence` skill (`atomic vault query ...`). This skill is for *version
+  `code-intelligence` skill (`atomic query ...`). This skill is for *version
   history and working-copy state*.
 - For the goals/intents/memory and recording workflow, see the `atomic-vault` skill.

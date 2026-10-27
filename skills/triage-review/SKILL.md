@@ -132,7 +132,7 @@ surfaces are the agenda for the steps that follow.
 
 ### 2. Investigate every blocking finding and every `judgment_required` criterion
 Use the read-only skills — do not guess:
-- `code-intelligence` (`atomic vault query neighbors|callers|code|entities`) to see
+- `code-intelligence` (`atomic query neighbors|callers|code|entities`) to see
   the blast radius and structure. Run each finding's `suggested_query`.
 - `atomic-vcs` (`atomic change <hash> -p`, `atomic diff --word-diff`) to read the
   actual edits and the reasoning that produced them.
@@ -245,7 +245,7 @@ severity:
 ### How a change links to an intent (the join)
 
 Triage links a change to an intent through a **shared `file:` node**: a change's
-`MODIFIES` edge and a task's `TOUCHES` edge must point at the *same* file path.
+`https://atomic.dev/ns/workflow#modifiesFile` edge and a task's `TOUCHES` edge must point at the *same* file path.
 You create the `TOUCHES` edge by giving a task a `::file-ref` leaf:
 
 ```md
@@ -324,7 +324,7 @@ those exact paths:
 
 ```bash
 # 1. Which intent should own this work? Check its tasks' file-refs match reality.
-atomic vault query neighbors file:src/foo.rs -d 2 --json   # any incoming TOUCHES from a task?
+atomic query neighbors file:src/foo.rs -d 2 --json   # any incoming TOUCHES from a task?
 
 # 2. Fix: add a matching file-ref to a task on the owning intent (edit the
 #    intent's .vault file with your file tool). The path must match the finding
@@ -345,9 +345,8 @@ atomic triage review empty-rose-5779 --into dev   # the change now links
 The exact-path match is the usual culprit: `foo.rs` will NOT meet `src/foo.rs`.
 If the change is genuinely unrelated to any intent, that is the finding doing its
 job — either author the intent that explains it, or question why it is promoting.
-(Note: `atomic vault query enrich` is still worth running for the entity-level
-`BLAST_UNREVIEWED` finding, which uses `DEFINES`/`CALLS` edges — but change→intent
-attribution no longer depends on it.)
+(Note: `atomic query reindex --full` is still worth running for change→view
+projection — but change→intent attribution no longer depends on it.)
 
 ### Clearing `STALE_TRIAGE`
 
@@ -388,7 +387,7 @@ all definition edits. That ordering avoids the churn entirely.
 
 ## Related skills
 
-- `code-intelligence` — investigate findings and blast radius (`atomic vault query …`).
+- `code-intelligence` — investigate findings and blast radius (`atomic query …`).
 - `atomic-vcs` — read the diffs and provenance behind each change (`atomic change -p`,
   `atomic diff --word-diff`).
 - `atomic-vault` — the intent/acceptance-criterion lifecycle you write the verdict into.

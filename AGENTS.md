@@ -46,14 +46,14 @@ task names the files it touches with `::file-ref` — those paths must come from
 the knowledge graph, not from guessed paths and not from grep/find:
 
 ```bash
-atomic vault query code "<concept>"        # content search — replaces grep
-atomic vault query search "<name>"         # structural nodes: files, entities, changes
-atomic vault query entities <path>         # a file's table of contents
-atomic vault query neighbors <node_id>     # follow relationships
+atomic query code "<concept>"              # content search — replaces grep
+atomic query search "<name>"               # structural nodes: files, changes, views
+atomic query entities <path>               # a file's table of contents (parsed live)
+atomic query neighbors <node_id>           # follow relationships
 ```
 
 Load the `@code-intelligence` skill for the full query reference. If `code`
-search reports a missing index, run `atomic vault query enrich` and retry.
+search reports a missing index, run `atomic query reindex --full` and retry.
 Every "build me X" turn plans its file-refs from these query results.
 
 Edit the intent file and replace **every** stub:
@@ -163,7 +163,7 @@ end.
 - **Every intent must end conforming and attested.** Create it with `atomic intent new` (the only way to create an intent), fill the mandatory `:::why` + at least one `:::acceptance-criterion` and `:::task`, and finish with `atomic intent validate` → `atomic intent attest` → `atomic intent update <ID> --status needs-review`. The intent is not ready for review until `atomic intent list` shows it `fresh` / `✓`. A missing `why` is a hard gate failure — fix it, don't skip it.
 - **Record durable memories at turn end.** Classify each durable insight into the right kind from `atomic memory kinds` (`decision`/`lesson`/`constraint`/`preference`/`context`) and `atomic memory new --kind <kind>` it (see `/decision-record`) — keep them high-signal, one memory per insight, attested, and linked to the most specific source with `--derived-from`.
 - **Problem first.** Reframe solution-requests as problems. Ask questions if unclear.
-- **Explore with code intelligence, not grep.** When a turn builds or changes code, discover the files with `atomic vault query` (`code`/`search`/`entities`/`neighbors`) before writing `::file-ref` paths into the intent — never from grep/find or guessed paths. The recorded provenance shows which tools you used; grep-only exploration means the intent was planned blind.
+- **Explore with code intelligence, not grep.** When a turn builds or changes code, discover the files with `atomic query` (`code`/`search`/`entities`/`neighbors`) before writing `::file-ref` paths into the intent — never from grep/find or guessed paths. The recorded provenance shows which tools you used; grep-only exploration means the intent was planned blind.
 - **Write the intent file before coding.** The plan goes in the file, not just in chat.
 - **Do NOT run `atomic add` or `atomic record`.** The plugin handles recording with provenance automatically. Running these commands yourself pre-empts the plugin and loses the provenance graph.
 - **Simplification guard.** When you pick an approach simpler than or divergent from a reference (the standard library, an existing implementation, a spec, a prior version), the simpler choice almost always drops a behavior the reference guaranteed. Name what it drops — interrupted/partial operations, error or panic states, round-trip fidelity, ordering, resource cleanup, concurrency, overflow/empty/boundary inputs — and for each, either pin it as an acceptance criterion, record it explicitly as out-of-scope with the consequence stated, or ask the user. Never leave it unstated. A decision about API *shape* is not a decision about *behavior*: the same signature can be implemented correctly or incorrectly, so resolve behavioral gaps as separate items.
