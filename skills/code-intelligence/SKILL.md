@@ -20,6 +20,8 @@ atomic query code "TODO" -t cpp --json
 
 Searches the actual source code — function bodies, comments, string literals, everything. Supports Rust-style regex, path filtering (`-g`), and file type filtering (`-t`). This is your replacement for grep.
 
+**Ignored files and folders are intentionally excluded.** Anything matching `.gitignore`, `.ignore`, `.atomicignore`, or the global ignore file, plus Atomic-internal paths (`.atomic/`, `.git/`, `.vault/`, `.atomic-sandbox*`), is not indexed and not searchable. Files over 10 MiB and binary files are skipped too. If this returns nothing, check the ignore patterns before assuming the text does not exist.
+
 **Regex syntax:** Use Rust/modern regex syntax, not basic `grep` syntax. For alternation, use plain `|` inside the quoted pattern:
 
 ```
@@ -121,6 +123,8 @@ This projects the workflow ontology over your repository's changes and views. Ru
 ## Tips
 
 - `code` replaces grep — use it for any text search across the codebase
+- Ignored files and folders are intentionally excluded from both the knowledge graph and the content index — never fall back to grep/find to read them
+- A file that is tracked but currently ignored still parses with `entities`/`callers`, but its content is not searchable with `code` until the pattern is removed and `atomic query index --rebuild` is run
 - `search` + `entities` finds structure (definitions, relationships) not raw text
 - `neighbors` on a `change:` node shows every file and view it touches
 - Chain: code → search → neighbors → entities → read_file. Each step narrows your focus.
