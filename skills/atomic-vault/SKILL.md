@@ -26,6 +26,8 @@ validated or signed, so it is dead on arrival.
 
 ```bash
 atomic intent list                                 # List intents + attested/verifies (CHECK FIRST)
+atomic intent list --sort status                   # Group by status, then ID
+atomic intent list --sort title --reverse          # Title descending, ties by ID
 atomic intent new "<title>"                        # Create a directive-based intent
 atomic intent show <id>                            # Render the lifted intent
 atomic intent validate <id>                        # Gate it against the canonical shapes
@@ -116,13 +118,36 @@ atomic memory kinds                                        # Allowed kinds + whe
 atomic memory new --kind <kind> --text "..." --derived-from <urn>   # Create (canonical)
 atomic memory attest <id>                                  # Gate and sign
 atomic memory validate <id>                                # Confirm it conforms once signed
-atomic memory list [-n <N>]                                # List — recent first, full ULID, kind/status/attested
+atomic memory list [-n <N>]                                # List — newest updated first by default
+atomic memory list --sort kind -n 10                       # First 10 after sorting by kind
+atomic memory list --sort updated -r -n 10                 # 10 oldest updated memories
 atomic memory show <id>                                    # Show a memory's content
 atomic memory write <name> [--type <t>]                    # Freeform write from stdin (raw escape hatch)
 ```
 
 Capture durable memories at turn end and classify each into the right kind —
 see the `/decision-record` skill for the rubric and source-linking.
+
+### Sorting intent and memory listings
+
+Both `atomic intent list` and `atomic memory list` accept `--sort <key>` and
+`-r` / `--reverse`. The available keys depend on the listing:
+
+| Listing | Sort keys | Default |
+|---------|-----------|---------|
+| Intent | `id`, `title`, `status`, `kind`, `attested`, `verifies` | `id` ascending |
+| Memory | `updated`, `id`, `kind`, `status`, `about`, `attested`, `verifies` | `updated`, newest first |
+
+Every key except `updated` sorts ascending by default. `about` sorts by the
+number of about edges; `attested` orders fresh, stale, then unattested, and
+`verifies` orders yes (✓), no (✗), then not applicable (–). `--reverse` flips
+the selected key's order, but equal keys still use ascending ID as a tiebreaker.
+Memory `-n` / `--limit` takes the first N **after** sorting and reversing;
+omitting it lists all memories. These options also work with `--json`.
+
+Sorting requires a CLI that includes [Atomic PR #299](https://github.com/atomicdotdev/atomic/pull/299).
+On older versions, check `atomic intent list --help` or `atomic memory list --help`
+and omit unsupported flags.
 
 ## Full Workflow (End to End)
 

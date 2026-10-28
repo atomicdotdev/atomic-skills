@@ -12,12 +12,14 @@ Intents are structured work records in the Atomic vault. You build them through 
 ### Check for duplicates first
 
 ```
-atomic vault intent list
-atomic vault intent list -s backlog
-atomic vault intent list --json
+atomic intent list
+atomic intent list --sort status
+atomic intent list --json
 ```
 
 Always run this before creating. If an existing intent covers the same problem, tell the user.
+Sorting groups statuses but does not filter them. See `atomic-vault` for sort
+keys, reverse ordering, and compatibility with older CLI versions.
 
 ### Create a draft
 
