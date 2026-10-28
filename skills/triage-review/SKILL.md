@@ -27,7 +27,7 @@ discarded after you act on it.
 | Command | Answers |
 |---------|---------|
 | `atomic triage candidates <feature> --into <target> [--json]` | Which changes would land if I promote `feature` into `target`? (only-in-feature + dependency closure + baggage) |
-| `atomic triage review <feature> --into <target> [--json]` | The full report: verdict, findings, the intents/criteria those changes fulfil, provenance, and a content-addressed triage reference. |
+| `atomic triage review <feature> --into <target> [--json] [--evidence-report <path>]` | The full report: verdict, findings, the intents/criteria those changes fulfil, provenance, attached evidence-replay outcomes, and a content-addressed triage reference. |
 
 `--json` is your worklist. Start there.
 
@@ -37,10 +37,13 @@ discarded after you act on it.
 
 - **`verdict`** — `ready` \| `blocked` \| `stale` (precedence: blocked > stale > ready).
 - **`inputs`** — `feature`, `target`, `view_merkle` (the pinned Merkle — you will
-  reuse this when you record verification), `candidate_changes`, `closure_additions`.
+  reuse this when you record verification), `candidate_changes`, `closure_additions`,
+  and `evidence_reports` (sorted content hashes of attached replay reports).
 - **`intents[]`** — each reached intent's `why`, gate `conforms`, and its
-  `criteria[]`. A criterion with `judgment_required: true` is one the gate cleared
-  for *presence* but that needs your *content* judgment.
+  `criteria[]`. When replay reports are attached, each intent also carries
+  `evidence_replays[]` with the report hash, its current-pin `fresh` flag, and the
+  per-criterion decisions. A criterion with `judgment_required: true` is one the
+  gate cleared for *presence* but that needs your *content* judgment.
 - **`changes[]`** — each candidate change's `message`, `modifies`, `coverage`,
   the real per-file `diff`, and compact `provenance` (which agent/session/turn).
 - **`findings[]`** — the failures, each with `code`, `severity`, `focus` (a node
@@ -55,6 +58,55 @@ discarded after you act on it.
 
 The gate enforces that evidence *exists*; it never grades the prose. **Your job is
 the content judgment it deliberately leaves to you.**
+
+## Attach retained evidence-replay reports
+
+When the author sealed a narrow evidence claim, do not take their word for it.
+Run the bounded replay **yourself** with a checker **you** trust, retain its JSON
+output, and attach it to triage:
+
+```bash
+# Run from the feature view being promoted: the report pins that view chain.
+atomic intent validate <work-id> --json \
+  --replay-evidence retained/manifest.json \
+  --evidence-checker /trusted/checkers/probity-checker.py \
+  > retained/replay-report.json
+
+atomic triage review <feature> --into <target> --json \
+  --evidence-report retained/replay-report.json
+```
+
+`--evidence-report` is repeatable. Each report is the full
+`atomic intent validate --json` document (`evidence_context` + `evidence_replay`).
+
+Triage re-reads the current intent and view chain and compares them to the
+report's pins:
+
+- **Fresh report:** its decisions produce `EVIDENCE_REPLAY_*` findings and a
+  per-intent `evidence_replays[]` summary.
+- **Stale report:** surfaced as `EVIDENCE_REPLAY_STALE`; its decisions are kept
+  visible but **never** treated as supported or contradicted.
+- **Report for an intent outside the candidate set:** surfaced as
+  `EVIDENCE_REPLAY_UNRELATED`, never silently dropped.
+
+The report hash is bound into the triage reference (`inputs.evidence_reports`), so
+attaching, removing, or changing a report changes the reference. `--attest` signs
+the summaries as part of the report.
+
+### Multi-agent handoff
+
+- The **author agent** supplies the work intent, retained artifacts, and the
+  manifest. It does not choose the checker.
+- The **reviewer agent** chooses or allowlists the checker, runs replay, attaches
+  the report, and writes the review intent.
+- Hold each decision to that allowlist: every entry in `evidence_replays[].decisions[]`
+  carries `checker` (`{package, version}`, or `null` when the checker named none).
+  A decision whose `checker` is `null` or names a release outside the allowlist
+  backs nothing; re-run replay with the allowlisted checker.
+- A `supported` decision can back a **met** review criterion; cite the report hash
+  and the retained artifacts in the verification record.
+- `contradicted`, `not_established`, or `stale` must leave the corresponding
+  review criterion **unmet**. Do not let a stale report support anything.
 
 ## Narrate the change first (the walkthrough story)
 
@@ -120,15 +172,23 @@ for the rest of the review.
 
 ## The review loop
 
-### 1. Get the report and narrate the change
+### 1. Run the replay, get the report, and narrate the change
 ```bash
-atomic triage review <feature> --into <target> --json
+# Reviewer-selected checker; run from the feature view being promoted.
+atomic intent validate <work-id> --json \
+  --replay-evidence retained/manifest.json \
+  --evidence-checker /trusted/checker > retained/replay-report.json
+atomic triage review <feature> --into <target> --json \
+  --evidence-report retained/replay-report.json
 ```
 Read the `walkthrough` and author the **narrative review** (intent → memory →
 change → review) per the section above — pulling each reached intent's derived
 memories with `atomic query neighbors intent:<UID> -d 1 --json` +
-`atomic memory show`. Lead your review with this story; the risks and blockers it
-surfaces are the agenda for the steps that follow.
+`atomic memory show`. Read the attached `evidence_replays[]` summaries as part of
+the story: supported claims are evidence, contradicted or not-established claims
+are review agenda, and stale reports are refused. Lead your review with this
+story; the risks and blockers it surfaces are the agenda for the steps that
+follow.
 
 ### 2. Investigate every blocking finding and every `judgment_required` criterion
 Use the read-only skills — do not guess:
@@ -222,6 +282,11 @@ rule below.
 | `STALE_TRIAGE` | warn | The intent's substance drifted after `done` was granted — its `done` lapsed. Re-review against the current state. |
 | `OPEN_REMEDIATION` | info | Promoted code has a `remediates`-linked intent in flight. Non-blocking; track it. |
 | `UNREVIEWED_CHANGE` | block →shared / warn draft | No independent, completed review covers this intent's changes. Author + attest a `kind: review` intent under a *different* identity that `reviews` it. |
+| `EVIDENCE_REPLAY_SUPPORTED` | info | An attached replay report supports a declared claim at the current pins. Cite the report hash/artifacts in the matching review criterion; it does not by itself mark the work done. |
+| `EVIDENCE_REPLAY_CONTRADICTED` | block →shared / warn draft | The retained bytes contradict the claim. Leave the review criterion unmet; require a fix or a corrected claim. |
+| `EVIDENCE_REPLAY_NOT_ESTABLISHED` | warn | The checker could not establish the claim (missing artifact, failure, timeout, malformed/unbound response). Re-run replay with the declared artifacts, or leave the criterion unmet. |
+| `EVIDENCE_REPLAY_STALE` | warn | The report no longer matches the intent substance/source or view-chain pins. Re-run replay against the current state; stale evidence supports nothing. |
+| `EVIDENCE_REPLAY_UNRELATED` | info | The report addresses an intent outside this candidate set (or one that could not load). Attach the right report; it does not participate in this verdict. |
 
 ## When you find a flaw
 
