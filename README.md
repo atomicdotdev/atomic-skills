@@ -72,7 +72,7 @@ The CLI reads the manifest — it never scans the filesystem.
 
 ### Adding a new skill
 
-1. Create `skills/<skill-name>/SKILL.md` with the skill content.
+1. Create `skills/<skill-name>/SKILL.md` with the skill content and YAML frontmatter including `metadata.version` (a semantic version string) and `metadata.updatedAt` (a quoted ISO 8601 timestamp with a timezone).
 2. Add one `[[declared-skill]]` entry to `atomic-integration.toml`:
    ```toml
    [[declared-skill]]
@@ -84,7 +84,11 @@ That's it. Every plugin that has `[skills] install = "all"` will pick up the new
 
 ### Updating an existing skill
 
-Edit the `SKILL.md` file, commit, push. Every plugin gets the update on next install — the CLI always re-clones the cache to get latest.
+Edit the `SKILL.md` file, increment `metadata.version`, and set `metadata.updatedAt` to a later timestamp. Commit and push. Every plugin gets the update on next install — the CLI always re-clones the cache to get latest.
+
+The **Validate skill metadata** pull request check runs [`skills-ref validate`](https://github.com/agentskills/agentskills/tree/main/skills-ref) on every skill directory to check frontmatter and naming. It also enforces the version and timestamp fields on added and changed skills, comparing existing skills against the PR's base branch. The first metadata addition to a legacy skill without metadata is allowed; subsequent updates must increase both values. Deleted skills are ignored by the metadata comparison, and recognized renames are compared against the previous path. The upstream `skills-ref` library is a reference implementation intended for demonstration, not production; it does not guarantee that skill instructions work correctly.
+
+To enforce the check before merging, configure it as a required status check in the repository's branch protection or ruleset. Require branches to be up to date before merging to ensure the check uses the latest base metadata, and require review of changes to the workflow and validator to prevent the check from being bypassed. For local format checks, install `skills-ref` as described in its upstream documentation and run `skills-ref validate skills/<skill-name>`; the workflow pins the upstream revision.
 
 ### Updating AGENTS.md
 
