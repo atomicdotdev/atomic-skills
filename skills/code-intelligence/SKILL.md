@@ -106,7 +106,7 @@ Reads goals, intents, memories, and skills from the vault. Use this to check pro
 4. **List entities** for the file structure: `atomic query entities src/db/repl/replication_coordinator.cpp`
 5. **Read** the specific lines you need with your built-in `read_file` tool
 
-`code` searches source content (like grep but indexed). `search` searches the KG structure (names, metadata, relationships). Use both.
+`code` searches the recorded source in your current view (like grep, but view-accurate). `search` searches the KG structure (names, metadata, relationships). Use both.
 
 You are the reasoning loop. You don't need `atomic query ask` — that command exists for humans on the terminal who don't have you in the loop.
 
@@ -122,9 +122,9 @@ This projects the workflow ontology over your repository's changes and views. Ru
 
 ## Tips
 
-- `code` replaces grep — use it for any text search across the codebase
-- Ignored files and folders are intentionally excluded from both the knowledge graph and the content index — never fall back to grep/find to read them
-- A file that is tracked but currently ignored still parses with `entities`/`callers`, but its content is not searchable with `code` until the pattern is removed and `atomic query index --rebuild` is run
+- `code` replaces grep — use it for any text search across the current view's recorded source
+- Ignored files and folders are intentionally excluded from the knowledge graph and from code search — never fall back to grep/find to read them
+- A file that is tracked but currently ignored still parses with `entities`/`callers`, but its content is not searchable with `code` until the pattern is removed — no index rebuild is needed, because search reads recorded bytes on every query
 - `search` + `entities` finds structure (definitions, relationships) not raw text
 - `neighbors` on a `change:` node shows every file and view it touches
 - Chain: code → search → neighbors → entities → read_file. Each step narrows your focus.
