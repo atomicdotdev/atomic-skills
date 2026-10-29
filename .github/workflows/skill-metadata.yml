@@ -1,0 +1,37 @@
+name: Skill metadata
+
+'on':
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-skill-metadata:
+    name: Validate skill metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # The reference implementation is pinned to an upstream commit.
+      - name: Install validators
+        run: python -m pip install 'PyYAML==6.0.3' 'skills-ref @ https://github.com/agentskills/agentskills/archive/69ef37e9424c0a7ea9dd2293b559e43ec8176379.tar.gz#subdirectory=skills-ref'
+      - name: Validate skill format
+        run: |
+          for skill in skills/*/; do
+            skills-ref validate "$skill"
+          done
+      - name: Test validator
+        run: python .github/scripts/test_validate_skill_metadata.py
+      - name: Validate changed skills
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python .github/scripts/validate_skill_metadata.py "$BASE_SHA" "$HEAD_SHA"

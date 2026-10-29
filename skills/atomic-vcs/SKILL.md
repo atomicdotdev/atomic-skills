@@ -1,6 +1,9 @@
 ---
 name: atomic-vcs
 description: Inspect repository state and history with the Atomic VCS CLI — status, log, change (including -p provenance and -a AI attestation), and diff. Use this whenever you need to see what changed, review your own recorded work, audit AI provenance, understand a teammate's change, or check the working copy before acting. These are read-only commands, safe to run anytime.
+metadata:
+  version: "1.0.0"
+  updatedAt: "2026-10-27T08:18:44Z"
 ---
 
 # Working with Atomic VCS

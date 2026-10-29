@@ -1,6 +1,9 @@
 ---
 name: atomic-vault
 description: Teaches the Atomic vault workflow — directive-based intents (a mandatory :::why plus acceptance-criteria and tasks) that must validate and attest, goals, and durable memories. Use it to author one conforming, signed intent per unit of work, track it through completion, and capture durable knowledge.
+metadata:
+  version: "1.0.0"
+  updatedAt: "2026-10-28T18:18:12Z"
 ---
 
 # Atomic Vault Workflow
