@@ -1,6 +1,9 @@
 ---
 name: intent-builder
 description: How to create, build, and confirm intents using the Atomic vault CLI.
+metadata:
+  version: "1.0.0"
+  updatedAt: "2026-10-28T18:17:35Z"
 ---
 
 # Building Intents

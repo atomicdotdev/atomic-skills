@@ -1,6 +1,9 @@
 ---
 name: decision-record
 description: At the end of a turn, review the session ledger and your own reasoning and capture each durable insight as an attestable Atomic memory of the RIGHT kind — decision, lesson, constraint, preference, or context — creating multiple memories when a turn produced several. Use this whenever you made a non-trivial choice, learned a corrective lesson, discovered a rule or constraint, established a durable preference, or uncovered background worth keeping. The memories are attestable, linked to the work that produced them, searchable via `atomic query`, and resurfaced as context in future turns via `atomic vault context`.
+metadata:
+  version: "1.0.0"
+  updatedAt: "2026-08-11T20:22:35Z"
 ---
 
 # Recording Durable Memories

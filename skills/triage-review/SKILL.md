@@ -1,6 +1,9 @@
 ---
 name: triage-review
-description: Review a change-set before its changes are promoted between views. Use this whenever you need to decide what to insert from one view into another, narrate what a change-set does and why, review whether an intent's acceptance criteria are genuinely satisfied by the recorded changes, judge a candidate change-set, or check for staleness and open remediations before promotion. Driven by `atomic triage review --json` (whose `walkthrough` groups the changes into ordered semantic layers); you read the walkthrough to author a provenance-backed narrative review — intent → memory → change — surfacing critical risks and blockers, then investigate the findings, review the actual code, and record your verdict as a review intent (`kind: review`) that `reviews` the work — authored and attested under your own identity (ideally a different model than the author), so promoting into a shared view requires an independent, completed review.
+description: "Review a change-set before its changes are promoted between views. Use this whenever you need to decide what to insert from one view into another, narrate what a change-set does and why, review whether an intent's acceptance criteria are genuinely satisfied by the recorded changes, judge a candidate change-set, or check for staleness and open remediations before promotion. Driven by `atomic triage review --json` (whose `walkthrough` groups the changes into ordered semantic layers); you read the walkthrough to author a provenance-backed narrative review — intent → memory → change — surfacing critical risks and blockers, then investigate the findings, review the actual code, and record your verdict as a review intent (`kind: review`) that `reviews` the work — authored and attested under your own identity (ideally a different model than the author), so promoting into a shared view requires an independent, completed review."
+metadata:
+  version: "1.0.0"
+  updatedAt: "2026-10-28T18:19:07Z"
 ---
 
 # Reviewing an Intent (Code Triage)

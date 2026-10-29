@@ -1,6 +1,9 @@
 ---
 name: code-intelligence
 description: Use the Atomic knowledge graph, tree-sitter, and content search to explore code structure and relationships. You ARE the agent — use these tools directly instead of grep and find.
+metadata:
+  version: "1.0.0"
+  updatedAt: "2026-10-27T08:20:11Z"
 ---
 
 # Code Intelligence
